@@ -14,7 +14,8 @@ def readData(filename):
 filename = 'data-N6-M2-d20-40-c15-45-K3.txt'
 N, d, M, c, K, p = readData(filename)
 
-print('Heuristic 1')
+
+print('Heuristic 3')
 
 startTime = time.time()
 
@@ -23,34 +24,32 @@ for pair in p:
     conflicts.setdefault(pair[0], []).append(pair[1])
     conflicts.setdefault(pair[1], []).append(pair[0])
 
-sortedRooms = sorted([(c[i], i) for i in range(M)]) #sort roomss in ascending order of capacity
+sortedRooms = sorted([(c[i], i) for i in range(M)]) #sort rooms in ascending order of capacity
 result = [[None] * M] #result[i, k] = exam administered in period i+1 and room k+1
 print('\nExam', 'Period', 'Room', sep='\t')
 for exam in range(N): #sequentially assign a period and a room to each exam
-    nextExam = False
-    for period in range(len(result) + 1): #consider existing periods first
-        if period == len(result):
-            #if this exam cannot be held in any existing period, set up a new period
-            result.append([None] * M)
-        notThisPeriod = False
-        if exam in conflicts:
-            for otherExam in result[period]:
-                if otherExam in conflicts[exam]:
-                    notThisPeriod = True
-                    break
-            if notThisPeriod:
-                continue 
+    stop = False
+    for period in range(len(result) + 1): #consider existing periods first 
         for room in range(M): #consider smaller rooms first to save bigger ones for other exams
             capacity = sortedRooms[room][0]
             roomIndex = sortedRooms[room][1]
-            if result[period][roomIndex] == None and capacity >= d[exam]:
-                result[period][roomIndex] = exam
-                print(exam + 1, period + 1, room + 1, sep='\t') #print schedule by exam
-                nextExam = True
-                break
-        if nextExam:
+            if capacity >= d[exam] and result[period][roomIndex] == None:
+                noConflict = True
+                if exam in conflicts:
+                    for otherExam in result[period]:
+                        if otherExam in conflicts[exam]:
+                            noConflict = False
+                            break
+                if noConflict:
+                    result[period][roomIndex] = exam
+                    print(exam + 1, period + 1, room + 1, sep='\t') #print schedule by exam
+                    stop = True
+                    break
+        if stop:
             break
-
+        if period == len(result) - 1:
+            #if this exam cannot be held in any existing period, set up a new period
+            result.append([None] * M)
 
 #PRINT RESULT
 

@@ -1,27 +1,25 @@
-from math import ceil
 import time
-
+import sys
 #READ INPUT
 
-def readData(filename):
-    with open(filename) as f:
-        content = [[int(j) for j in i.split()] for i in f.read().splitlines()]
-    N, d, M, c, K = content[0][0], content[1], content[2][0], content[3], content[4][0]
-    p = [[content[5 + i][0] - 1, content[5 + i][1] - 1] for i in range(K)]
-    print(f'N = {N}', f'd = {d}', f'M = {M}', f'c = {c}', f'K = {K}', f'p = {p}', sep = '\n')
-    print('------------------')
-    return N, d, M, c, K, p
-filename = 'data-N6-M2-d20-40-c15-45-K3.txt'
-N, d, M, c, K, p = readData(filename)
+def input():
+    [N,M] = [int(x) for x in sys.stdin.readline().split()]
+    d = [int(x) for x in sys.stdin.readline().split()]
+    c = [int(x) for x in sys.stdin.readline().split()]
+    [K] = [int(x) for x in sys.stdin.readline().split()]
+    p = []
+    for i in range(K):
+        p.append([int(x) for x in sys.stdin.readline().split()])
+    return N,M,d,c,K,p
 
+N, M, d, c, K, p = input()
 
-print('Heuristic 2')
+#GREEDY ALGORITHM
+
 conflicts = {} #conflicts[i] = list of exams that cannot be administered in the same period as exam i+1
 for pair in p:
     conflicts.setdefault(pair[0], []).append(pair[1])
     conflicts.setdefault(pair[1], []).append(pair[0])
-
-print('\nPeriod', 'Room', 'Exam', sep='\t')
 
 sortedExams = sorted([(d[i], i) for i in range(N)], reverse=True) #sort exams in ascending order of capacity
 
@@ -48,18 +46,15 @@ while sortedExams: #sequentially fill each period with as many exams as possible
 #PRINT RESULT
 end_time = time.time()
 
-print(f'\nUsed time: {(end_time - start_time) * 1000} milliseconds')
+solution = []
+for pe in range(period): #print schedule by period
+    for room in range(M):
+        exam = schedule[pe][room]
+        conflictsOfThisExam = [e + 1 for e in conflicts.get(exam, [])]
+        if exam != None:
+            solution.append([exam+1,pe+1,room+1])
+solution = sorted(solution, key= lambda x: x[0])
+for i in solution:
+    print(*i)
 
-numberOfDays = ceil(period / 4)
-print(f'\nThe number of days to administer all exams is {numberOfDays}.')
-
-if input('\nEnter "y" to see details. ').lower() in ("y", "yes"):
-    for p in range(period): #print schedule by period
-        if p % 4 == 0:
-            print(f'Day {p // 4 + 1}:')
-        print(f'\tPeriod {p + 1}:')
-        for room in range(M):
-            exam = schedule[p][room]
-            conflictsOfThisExam = [e + 1 for e in conflicts.get(exam, [])]
-            if exam != None:
-                print(f'\t\tRoom {room + 1} (capacity = {c[room]}): Exam {exam + 1} (expected attendants = {d[exam]}, exams with common candidates = {conflictsOfThisExam})')
+# print(f'Used time: {1000*(end_time - start_time)} milliseconds')

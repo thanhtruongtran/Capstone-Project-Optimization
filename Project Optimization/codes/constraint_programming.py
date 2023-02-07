@@ -90,9 +90,9 @@ cp_solver = cp_model.CpSolver()
 cp_solver.parameters.max_time_in_seconds = 40.0
 
 # Solve and count used time
-start_time = time.process_time()
+start_time = time.time()
 status = cp_solver.Solve(model)
-end_time = time.process_time()
+end_time = time.time()
 
 # Print solution
 if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
